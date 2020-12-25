@@ -2,7 +2,6 @@ package com.cse223.mailserver;
 
 import com.cse223.mailserver.flow.*;
 import org.json.simple.parser.ParseException;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -48,6 +47,11 @@ public class Controller {
         return server.signUp(user);
     }
 
+    @GetMapping("/getUserUsername")
+    public String getUsername(){
+        return server.getUserName();
+    }
+
 
     /**
      *Compose and move to trash.
@@ -56,15 +60,15 @@ public class Controller {
 
     @PostMapping("/compose")
     public boolean compose(@RequestParam(name="type")String type,@RequestParam(name = "title")String title , @RequestParam(name = "body") String body
-            ,@RequestParam(name = "receivers") String receivers,@Nullable @RequestParam(name="myFile")MultipartFile[] multipartFiles ) throws IOException {
+            ,@RequestParam(name = "receivers") String receivers,@Nullable @RequestParam(name="myFile")MultipartFile[] multipartFiles , @RequestParam("priority") boolean priority ) throws IOException {
         System.out.println("Title is " + title);
         System.out.println("Body is " + body);
-        String[] receiverList = receivers.split("\n");
+        String[] receiverList = receivers.split(",");
         System.out.println(Arrays.toString(receiverList));
         ArrayList<String> recs = new ArrayList<>();
         Collections.addAll(recs, receiverList);
         try {
-             return server.createMessage(title, body,handleFiles(multipartFiles), recs, type);
+             return server.createMessage(title, body,handleFiles(multipartFiles), recs, type , priority);
 
         }catch (Exception e){
             e.printStackTrace();
@@ -142,36 +146,59 @@ public class Controller {
             return null;
         }
     }
+    @GetMapping("/sortPrior")
+    public ArrayList<Message> sortPrior(@RequestParam(name ="inboxOrSent") String inbox){
+        ArrayList<Message> list = new ArrayList<>();
+        ArrayList<? extends Message> primary = server.myFilter(Constants.TRUE ,Constants.PRIORITY , inbox);
+        ArrayList<? extends Message> defaultList = server.myFilter(Constants.FALSE , Constants.PRIORITY , inbox);
+        if(primary != null)
+            list.addAll(primary);
+        if(defaultList != null)
+            list.addAll(defaultList);
+        System.out.println(list);
+
+        return list.isEmpty() ? null : list;
+    }
 
     @PostMapping("/file")
     public void saveFile(HttpServletRequest request,@RequestParam("myFile")MultipartFile[] multipartFiles) throws IOException {
-//        for (MultipartFile multipartFile : multipartFiles) {
-//            System.out.println(multipartFile.getSize());
-//            File file = new File("F:\\" + multipartFile.getOriginalFilename());
-//            System.out.println(file.getAbsolutePath());
-//            multipartFile.transferTo(file);
-//            System.out.println("Saved at " + file.getAbsolutePath());
+//
+//        for(MultipartFile file:multipartFiles) {
+//            try {
+//                Path path=Paths.get(Constants.DATABASE_PATH+file.getOriginalFilename());
+//                System.out.println(path);
+//                System.out.println(file.getInputStream());
+//                try {
+//                    Files.copy(file.getInputStream(),path);
+//                } catch (IOException e) {
+//                    // TODO Auto-generated catch block
+//                    e.printStackTrace();
+//                }
+//            } catch (IOException e) {
+//                // TODO Auto-generated catch block
+//                e.printStackTrace();
+//            }
 //        }
         for (MultipartFile multipartFile : multipartFiles) {
-            String directory =  multipartFile.getOriginalFilename();
+            String directory = multipartFile.getOriginalFilename();
 
             Path path = Path.of(directory);
 
-            Files.copy(multipartFile.getInputStream() ,path, StandardCopyOption.REPLACE_EXISTING);
-//
-            System.out.println("Directory " + directory);
+            Files.copy(multipartFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
+        }
+
+//            System.out.println("Directory " + directory);
 //            File fileSave = new File("\\"+multipartFile.getOriginalFilename() );
             //File fileSave = new File(directory);
 //            System.out.println(fileSave.getAbsolutePath());
 //            multipartFile.transferTo(fileSave);
-        }
     }
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadFile(HttpServletRequest request , @RequestParam(name="id")String id , @RequestParam(name="type") String type,
                                                  @RequestParam(name="name")String file) throws MalformedURLException {
         System.out.println("Pressed!");
         String fileName = "data_base\\";
-        fileName+=server.getUserEmail()+"\\"+Constants.ATTACHEMENTS+"\\";
+        fileName+=server.getUserEmail()+"\\"+Constants.ATTACHMENTS +"\\";
         fileName+=type+id+"\\"+file;
         System.out.println(fileName);
         Path filePath = Paths.get(fileName);
@@ -195,6 +222,61 @@ public class Controller {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
+
+
+
+    @GetMapping("/getContacts")
+    @ResponseBody
+    public ArrayList<Contact> getContacts(){
+        ArrayList<Contact> list = server.getContacts();
+        System.out.println("List of contacts : "+list);
+        return list;
+    }
+
+    @GetMapping("/addContact")
+    public boolean addContact(@RequestParam(name="email")String email , @RequestParam(name = "name") String contactName) throws IOException, ParseException {
+        String[]  contactsList = email.split(",");
+        ArrayList<String> emails = new ArrayList<>();
+        Collections.addAll(emails , contactsList);
+        System.out.println("Contact name is "+ contactName);
+        System.out.println("Emails are "+emails);
+        try {
+            return server.addContact(contactName, emails);
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    @PostMapping("/deleteContacts")
+    @ResponseBody
+    public void deleteContacts(@RequestBody ArrayList<String> names){
+        try {
+            for (String name : names)
+                server.deleteContact(name);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @GetMapping("/editContacts")
+    public boolean editContacts(@RequestParam("email")String emails , @RequestParam("newName")String newName , @RequestParam("oldName") String oldName){
+        ArrayList<String> emailsList = new ArrayList<>();
+        String[] list = emails.split(",");
+        Collections.addAll(emailsList , list);
+        try {
+            server.editContact(oldName, newName, emailsList);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    @GetMapping("/filterContacts")
+    public ArrayList<Contact> filterContacts(@RequestParam("typeOfSort")String type , @RequestParam("name")String name){
+       return server.searchingContact(type, name);
+    }
+
 }
 
 

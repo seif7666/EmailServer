@@ -9,15 +9,16 @@ public class Message {
     private MessageHeader header;
     private Attachments attaches;
     private String time;
+    private boolean priority;
 
 
-    public Message(int iD, MessageBody body, MessageHeader header, Attachments attaches, String time) {
-        super();
-        ID = iD;
+    public Message(int ID, MessageBody body, MessageHeader header, Attachments attaches, String time, boolean priority) {
+        this.ID = ID;
         this.body = body;
         this.header = header;
         this.attaches = attaches;
         this.time = time;
+        this.priority = priority;
     }
 
     public int getID() {
@@ -36,6 +37,23 @@ public class Message {
         return time;
     }
 
+    public boolean isPriority() {
+        return priority;
+    }
+
+    public void setPriority(boolean priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("Message{");
+        sb.append("ID=").append(ID);
+        sb.append(", body=").append(body);
+        sb.append(", header=").append(header);
+        sb.append('}');
+        return sb.toString();
+    }
 
 
 }

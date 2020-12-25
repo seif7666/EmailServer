@@ -15,14 +15,16 @@ public class MessageCreator {
     private Message messageInbox;
     private Message messageDraft;
     private Message messageTrash;
+    private boolean priority=false;
 
 
-    public MessageCreator( MessageHeader header, MessageBody body,Attachments attaches, String time,int ID) {
+    public MessageCreator( MessageHeader header, MessageBody body,Attachments attaches, String time,int ID,boolean priority) {
         this.body = body;
         this.header = header;
         this.attaches = attaches;
         this.time = time;
         this.ID =ID;
+        this.priority=priority;
     }
 
     public MessageBody getBody() {
@@ -50,7 +52,13 @@ public class MessageCreator {
         this.messageSent = message;
     }
 
+    public boolean isPriority() {
+        return priority;
+    }
 
+    public void setPriority(boolean priority) {
+        this.priority = priority;
+    }
 
     public int getID() {
         return ID;
@@ -70,21 +78,28 @@ public class MessageCreator {
     }
 
     public Message buildSentMessage() {
-        messageSent= new Sent(ID,body,header,attaches,time);
+        messageSent= new Sent(ID,body,header,attaches,time , priority);
         return  messageSent;
     }
     public Message buildInboxMessage() {
-        messageInbox= new Inbox(ID,body,header,attaches,time);
+        messageInbox= new Inbox(ID,body,header,attaches,time , priority);
         return  messageInbox;
     }
     public Message buildDraftMessage() {
-        messageDraft= new Draft(ID,body,header,attaches,time);
+        messageDraft= new Draft(ID,body,header,attaches,time , priority);
         return  messageDraft;
     }
     public Message builTrashMessage() {
-        messageTrash= new Trash(ID,body,header,attaches,time);
+        messageTrash= new Trash(ID,body,header,attaches,time , priority);
         return  messageTrash;
     }
 
-
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("MessageCreator{");
+        sb.append("header=").append(header);
+        sb.append(", ID=").append(ID);
+        sb.append('}');
+        return sb.toString();
+    }
 }

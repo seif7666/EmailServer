@@ -8,12 +8,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.Date;
 
 @SpringBootApplication
 public class MailserverApplication {
 
     public static void main(String[] args) throws IOException {
         SpringApplication.run(MailserverApplication.class, args);
+
 //        File source = new File("C:\\Users\\Seif\\Desktop\\Figure_1.png");
 //        File dest = new File("Fi.png");
 //        System.out.println(dest.getAbsoluteFile());

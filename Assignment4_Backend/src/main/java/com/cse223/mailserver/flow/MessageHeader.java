@@ -8,13 +8,15 @@ public class MessageHeader {
     private ArrayList<String> reciever;
     private String subject;
     private String folderName;
+    private boolean priority;
 
 
-    public MessageHeader(String sender, ArrayList<String> reciever, String subject,String folderName ){
+    public MessageHeader(String sender, ArrayList<String> reciever, String subject,String folderName ,boolean priority){
         this.sender = sender;
         this.reciever = reciever;
         this.subject = subject;
         this.folderName=folderName;
+        this.priority=priority;
     }
 
 
@@ -48,6 +50,22 @@ public class MessageHeader {
         this.folderName = folderName;
     }
 
+    public boolean isPriority() {
+        return priority;
+    }
 
+    public void setPriority(boolean priority) {
+        this.priority = priority;
+    }
 
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer("MessageHeader{");
+        sb.append("sender='").append(sender).append('\'');
+        sb.append(", reciever=").append(reciever);
+        sb.append(", subject='").append(subject).append('\'');
+        sb.append(", folderName='").append(folderName).append('\'');
+        sb.append('}');
+        return sb.toString();
+    }
 }

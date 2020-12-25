@@ -7,7 +7,7 @@ public class UserClass implements User {
     private String password;
     private String Email;
     private String Birthday;
-    private ArrayList<String> Contacts;
+    private ArrayList<Contact> Contacts;
     private ArrayList<Sent> sentMessage;
     private ArrayList<Inbox> inbox;
     private ArrayList<Draft> draft;
@@ -32,10 +32,10 @@ public class UserClass implements User {
     public void setPassword(String password) {
         this.password = password;
     }
-    public ArrayList<String> getContacts() {
+    public ArrayList<Contact> getContacts() {
         return Contacts;
     }
-    public void setContacts(ArrayList<String> contacts) {
+    public void setContacts(ArrayList<Contact> contacts) {
         Contacts = contacts;
     }
     public ArrayList<Sent> getSentMessage() {
@@ -96,6 +96,11 @@ public class UserClass implements User {
         System.out.println(message);
         System.out.println(sentMessage);
         trash.add(message);
+    }
+    public void addContact(Contact myContact){
+        if(Contacts == null)
+            Contacts = new ArrayList<>();
+        Contacts.add(myContact);
     }
 
 

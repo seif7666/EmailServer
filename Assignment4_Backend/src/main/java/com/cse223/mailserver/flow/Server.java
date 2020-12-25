@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 
 public class Server {
@@ -50,7 +51,7 @@ public class Server {
         }else {
             user=new UserClass(userInterface.getUserName(),userInterface.getPassword(),userInterface.getEmail(),userInterface.getBirthday());
             fillCurrentUser(user.getEmail());
-//            AutoDelete();
+            AutoDelete();
             return true;
         }
 
@@ -69,35 +70,36 @@ public class Server {
 
     }
     ///////////////////////message dealer//////////////////////////////////////////////////////////
-    public boolean  createMessage(String subject , String body , ArrayList<MultipartFile> attaches, ArrayList<String> reciver , String sentOrDart) throws IOException, ParseException{
+    public boolean  createMessage(String subject , String body , ArrayList<MultipartFile> attaches, ArrayList<String> reciver , String sentOrDart,boolean priority) throws IOException, ParseException{
         SaveAndLoad saveAndLoad =new SaveAndLoad();
         Date date = new Date();
-
-        MessageHeader header = new MessageHeader(user.getEmail(),reciver,subject,sentOrDart);
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        LocalDateTime now = LocalDateTime.now();
+        MessageHeader header = new MessageHeader(user.getEmail(),reciver,subject,sentOrDart,priority);
         MessageBody Body = new MessageBody(body);
         Attachments Attaches;
         MessageCreator myMessage ;
         if (sentOrDart.equals(Constants.Sent)) {
-            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHEMENTS_SENT,saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ));
+            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_SENT,saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ));
             Attaches = new Attachments(attachementsDealing);
-            myMessage = new MessageCreator(header,Body,Attaches,date.toString(),saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ));
+            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ),priority);
 
             saveAndLoad.sendMessage(myMessage, Constants.Sent, myMessage.getHeader().getSender());
             for (int i = 0; i < reciver.size(); i++) {
                 if (!exist_user(myMessage.getHeader().getReciever().get(i))) {
                     return false;
                 }
-                attachementsDealing=saveMultipartFile(attaches,myMessage.getHeader().getReciever().get(i),Constants.ATTACHEMENTS_INBOX,saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox));
+                attachementsDealing=saveMultipartFile(attaches,myMessage.getHeader().getReciever().get(i),Constants.ATTACHMENTS_INBOX,saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox));
                 Attaches = new Attachments(attachementsDealing);
-                header = new MessageHeader(user.getEmail(),reciver,subject,Constants.Inbox);
-                myMessage = new MessageCreator(header,Body,Attaches,date.toString(),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox));
+                header = new MessageHeader(user.getEmail(),reciver,subject,Constants.Inbox,priority);
+                myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox),priority);
                 saveAndLoad.sendMessage(myMessage, Constants.Inbox, myMessage.getHeader().getReciever().get(i));
             }
         }
         else{
-            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTASHEMENTS_DRAFTS,saveAndLoad.getMessageID(user.getEmail(),Constants.Draft ));
+            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_DRAFTS,saveAndLoad.getMessageID(user.getEmail(),Constants.Draft ));
             Attaches = new Attachments(attachementsDealing);
-            myMessage = new MessageCreator(header,Body,Attaches,date.toString(),saveAndLoad.getMessageID(user.getEmail(), Constants.Draft));
+            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(), Constants.Draft),priority);
             saveAndLoad.sendMessage(myMessage, Constants.Draft, myMessage.getHeader().getSender());
         }
         if (sentOrDart.equals(Constants.Sent))
@@ -106,7 +108,6 @@ public class Server {
             user.addDraftMessage((Draft) myMessage.buildDraftMessage());
         return true;
     }
-
 
 
     /////////////////////////////////////////////////Trash//////////////////////////////////////////////////////////////
@@ -151,22 +152,24 @@ public class Server {
     }
 
     public void AutoDelete() throws java.text.ParseException, FileNotFoundException, IOException, ParseException {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
         SaveAndLoad saveAndLoad =new SaveAndLoad();
         ArrayList<MessageCreator> messages;
         try {
             messages=saveAndLoad.readMessages(user.getEmail(), Constants.Trash);
+            if(messages == null)
+                return;
         }catch (Exception e) {
             return ;
         }
-
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDateTime now = LocalDateTime.now();
-        LocalDate d2 = LocalDate.parse(dtf.format(now), DateTimeFormatter.ISO_LOCAL_DATE);
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+        Date secondDate = sdf.parse(dtf.format(now));
         for(int i=0;i<messages.size();i++) {
-            LocalDate d1 = LocalDate.parse((CharSequence) new SimpleDateFormat("dd/MM/yyyy").parse((messages.get(i).getTime())), DateTimeFormatter.ISO_LOCAL_DATE);
-            Duration diff = Duration.between(d2.atStartOfDay(), d1.atStartOfDay());
-            long diffDays = diff.toDays();
-            if(diffDays>=30) {
+            Date firstDate=new SimpleDateFormat("dd/MM/yyyy").parse(messages.get(i).getTime());
+            long diffInMillies = Math.abs(secondDate.getTime() - firstDate.getTime());
+            if(diffInMillies>=30) {
                 messages.remove(i);
             }
         }
@@ -202,6 +205,9 @@ public class Server {
     ////////////////////////////////sort//////////////////////////
 
     public ArrayList<MessageCreator> sort(String folder,String type) throws FileNotFoundException, IOException, ParseException {
+        if(type.equals(Constants.PRIORITY)){
+
+        }
         SaveAndLoad saveAndLoad = new SaveAndLoad();
         ArrayList<MessageCreator> messages = saveAndLoad.readMessages(user.getEmail(), folder);
         System.out.println(type);
@@ -233,9 +239,9 @@ public class Server {
     }
 
     //////////////////////////////////////////////Filter/////////////////////////////////////////////////
-    public ArrayList<? extends Message> myFilter (String  filterName , String subjectOrReceiversOrBodyOrDate , String inboxOrSentOrTrashOrDraft ){
+    public ArrayList<? extends Message> myFilter (String  filterName , String subjectOrReceiversOrBodyOrDateOrPriority , String inboxOrSentOrTrashOrDraft ){
         ArrayList<? extends Message> result =new ArrayList<>() ;
-        switch (subjectOrReceiversOrBodyOrDate){
+        switch (subjectOrReceiversOrBodyOrDateOrPriority){
             case Constants.SUBJECT:
                 Criteria subjectFilter = new SubjectCriteria(filterName);
                 result = getMessages(inboxOrSentOrTrashOrDraft, result, subjectFilter);
@@ -253,13 +259,24 @@ public class Server {
                 Criteria dateFilter = new DateCriteria(filterName);
                 result = getMessages(inboxOrSentOrTrashOrDraft, result, dateFilter);
                 break;
+            case Constants.PRIORITY:
+                boolean check;
+                if (filterName.equals(Constants.TRUE))
+                    check=true;
+                else
+                    check=false;
+                System.out.println("Check is "+check);
+                Criteria PriorityCriteria = new PriorityCriteria(check);
+                result = getMessages(inboxOrSentOrTrashOrDraft, result, PriorityCriteria);
+                System.out.println("Result size is "+result.size());
+                break;
         }
 
         return result;
     }
 
-    private ArrayList<? extends Message> getMessages(String inboxOrSentOrTrashOrDraft, ArrayList<? extends Message> result, Criteria subjectFilter) {
-        switch (inboxOrSentOrTrashOrDraft) {
+    private ArrayList<? extends Message> getMessages(String subjectOrReceiversOrBodyOrDateOrPriority, ArrayList<? extends Message> result, Criteria subjectFilter) {
+        switch (subjectOrReceiversOrBodyOrDateOrPriority) {
             case Constants.Inbox:
                 result = subjectFilter.filterCriteria(user.getInbox());
                 break;
@@ -276,12 +293,133 @@ public class Server {
         return result;
     }
 
+
+
+    /**
+     * Saves multipart file in required directory
+     */
+    public  ArrayList<String> saveMultipartFile(ArrayList<MultipartFile> multipartFiles, String Email,String folder,int messageID) throws IOException {
+        if (multipartFiles == null)
+            return null;
+        ArrayList<String>files = new ArrayList<>();
+        String makemessageAttachementsFolder=Constants.DATABASE_PATH+Email+"//"+Constants.ATTACHMENTS +"//"+folder +messageID;
+        System.out.println("Make message " +makemessageAttachementsFolder);
+        File file = new File(makemessageAttachementsFolder);
+        file.mkdir();
+        for(MultipartFile multipartFile : multipartFiles) {
+            String directory= makemessageAttachementsFolder+"\\" + multipartFile.getOriginalFilename();
+            Path path = Path.of(directory);
+            Files.copy(multipartFile.getInputStream() ,path, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("Directory " + directory);
+            files.add(directory);
+        }
+        return files;
+    }
+
+    public ArrayList<Contact> getContacts(){
+        try {
+            return save.readContactsFromJson(user.getEmail());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean addContact(String name,ArrayList<String> Emails) throws FileNotFoundException, IOException, ParseException {
+        SaveAndLoad saveAndLoad = new SaveAndLoad();
+        ArrayList<Contact> previousContact = new ArrayList<>();
+        previousContact=saveAndLoad.readContactsFromJson(user.getEmail());
+        if(previousContact!=null) {
+            for(int i=0;i<previousContact.size();i++) {
+                if(previousContact.get(i).getName().equals(name)) {
+                    return false;
+                }
+            }
+
+        }
+        for(int i=0;i<Emails.size();i++) {
+            if(!exist_user(Emails.get(i))) {
+                return false;
+            }
+        }
+        Contact contact=new Contact(name, Emails);
+        saveAndLoad.AddContact(user.getEmail(), contact);
+        return true;
+
+
+    }
+    public boolean deleteContact(String name) throws IOException, ParseException {
+        SaveAndLoad saveAndLoad = new SaveAndLoad();
+        ArrayList<Contact> previousContact = saveAndLoad.readContactsFromJson(user.getEmail());
+
+        saveAndLoad.ClearFileContent(user.getEmail(),Constants.CONTACTS);
+        for(int i=0; i<previousContact.size();i++) {
+            if(previousContact.get(i).getName().equals(name)) {
+                previousContact.remove(i);
+            }
+
+        }
+        for(int i=0; i<previousContact.size();i++) {
+            saveAndLoad.AddContact(user.getEmail(),previousContact.get(i));
+        }
+        return true;
+    }
+    public boolean editContact(String Name,String newName,ArrayList<String> newEmails) throws IOException, ParseException {
+        SaveAndLoad saveAndLoad = new SaveAndLoad();
+        ArrayList<Contact> previousContact = saveAndLoad.readContactsFromJson(user.getEmail());
+
+        saveAndLoad.ClearFileContent(user.getEmail(),Constants.CONTACTS);
+        for(int i=0; i<previousContact.size();i++) {
+            if(previousContact.get(i).getName().equals(Name)) {
+                //previousContact.get(i).getEmails().remove(i);
+                previousContact.get(i).setEmails(newEmails);
+                previousContact.get(i).setName(newName);
+            }
+
+        }
+        for(int i=0; i<previousContact.size();i++) {
+            saveAndLoad.AddContact(user.getEmail(), previousContact.get(i));
+        }
+        return true;
+    }
+
+    /**
+     * Copies source file to dest file
+     */
+    private static   void copyFileUsingChannel(File source, File dest) throws IOException {
+        FileChannel sourceChannel = null;
+        FileChannel destChannel = null;
+        sourceChannel = new FileInputStream(source).getChannel();
+        destChannel = new FileOutputStream(dest).getChannel();
+        destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+        sourceChannel.close();
+        destChannel.close();
+    }
+
+//            File file = new File("F:\\" + multipartFile.getOriginalFilename());
+//            System.out.println(file.getAbsolutePath());
+//            multipartFile.transferTo(file);copy file
+//            System.out.println("Saved at " + file.getAbsolutePath());
+
+    public ArrayList<Contact> searchingContact (String nameOrEmail , String attribute){
+        ArrayList<Contact> result = new ArrayList<>();
+        SearchingContacts searched = new SearchingContacts(user.getContacts());
+        if (nameOrEmail.equals("name")){
+            result=searched.searchingByName(attribute);
+        }else {
+            result=searched.searchingByEmails(attribute);
+        }
+
+        return result;
+    }
+
     public void fillCurrentUser(String Email ) throws FileNotFoundException, IOException, ParseException {
         SaveAndLoad saveAndLoad = new SaveAndLoad();
         ArrayList<MessageCreator> sent= saveAndLoad.readMessages(Email,Constants.Sent);
         ArrayList<MessageCreator> Inbox= saveAndLoad.readMessages(Email,Constants.Inbox);
         ArrayList<MessageCreator> draft= saveAndLoad.readMessages(Email,Constants.Draft);
         ArrayList<MessageCreator> trash= saveAndLoad.readMessages(Email,Constants.Trash);
+        ArrayList<Contact> contact= saveAndLoad.readContactsFromJson(user.getEmail());
         if(Inbox==null) {
         }else {
             for(int i=0; i<Inbox.size();i++) {
@@ -306,81 +444,19 @@ public class Server {
                 user.addTrashMessage((Trash) trash.get(i).builTrashMessage());
             }
         }
-    }
-
-    /**
-     * Saves multipart file in required directory
-     */
-    public  ArrayList<String> saveMultipartFile(ArrayList<MultipartFile> multipartFiles, String Email,String folder,int messageID) throws IOException {
-        if (multipartFiles == null)
-            return null;
-        ArrayList<String>files = new ArrayList<>();
-        String makemessageAttachementsFolder="data_base\\"+Email+"\\"+Constants.ATTACHEMENTS +"\\"+folder +messageID;
-        System.out.println("Make message " +makemessageAttachementsFolder);
-        File file = new File(makemessageAttachementsFolder);
-        file.mkdir();
-        for(MultipartFile multipartFile : multipartFiles) {
-            String directory= makemessageAttachementsFolder+"\\" + multipartFile.getOriginalFilename();
-            Path path = Path.of(directory);
-            Files.copy(multipartFile.getInputStream() ,path, StandardCopyOption.REPLACE_EXISTING);
-            System.out.println("Directory " + directory);
-            files.add(directory);
-        }
-        return files;
-    }
-
-    public boolean addContact(String Contact) throws FileNotFoundException, IOException, ParseException {
-        SaveAndLoad saveAndLoad = new SaveAndLoad();
-        ArrayList<String> previousContact = new ArrayList<>();
-        previousContact=saveAndLoad.readContactsFromJson(user.getEmail());
-        if(previousContact!=null) {
-            for(int i=0;i<previousContact.size();i++) {
-                if(previousContact.get(i).equals(Contact)) {
-                    return false;
-                }
+        if(contact==null) {
+        }else {
+            for(int i=0; i<contact.size();i++) {
+                user.addContact(contact.get(i));
             }
-
         }
-        saveAndLoad.AddContact(user.getEmail(), Contact);
-        return true;
-
-
     }
-    public boolean deleteContact(String Contact) throws IOException, ParseException {
-        SaveAndLoad saveAndLoad = new SaveAndLoad();
-        ArrayList<String> previousContact = new ArrayList<>();
-        saveAndLoad.ClearFileContent(user.getEmail(),Constants.CONTACTS);
-        for(int i=0; i<previousContact.size();i++) {
-            if(previousContact.get(i).equals(Contact)) {
-                previousContact.remove(i);
-            }
-
-        }
-        for(int i=0; i<previousContact.size();i++) {
-            saveAndLoad.AddContact(user.getEmail(), previousContact.get(i));
-        }
-        return true;
-    }
-    /**
-     * Copies source file to dest file
-     */
-    private static   void copyFileUsingChannel(File source, File dest) throws IOException {
-        FileChannel sourceChannel = null;
-        FileChannel destChannel = null;
-        sourceChannel = new FileInputStream(source).getChannel();
-        destChannel = new FileOutputStream(dest).getChannel();
-        destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
-        sourceChannel.close();
-        destChannel.close();
-    }
-
-//            File file = new File("F:\\" + multipartFile.getOriginalFilename());
-//            System.out.println(file.getAbsolutePath());
-//            multipartFile.transferTo(file);copy file
-//            System.out.println("Saved at " + file.getAbsolutePath());
 
 
     public String getUserEmail(){
         return user.getEmail();
+    }
+    public String getUserName(){
+        return user.getUserName();
     }
 }
