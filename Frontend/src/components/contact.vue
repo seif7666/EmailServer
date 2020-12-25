@@ -1,25 +1,24 @@
+/* eslint-disable */
 <template>
   <div class="A_contact">
     <div   @click = "selectContact">
-      <h3 class = "nickname">{{ nickname }}</h3>
-      <h3 class="username">{{ username }}</h3>
-      <span class = "email"> {{ email }}</span>
+      <h3 class="username">Name of contact: {{ username }}</h3>
+      <span class = "email"> Emails: {{ email }}</span>
       <br>
-      <span class ="phonenumber">{{phoneNumber}}</span>
     </div>
     <div>
       <br>
       <label>
         Select
       </label>
-      <input type="checkbox">
+      <input @change="checked" type="checkbox">
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["id","nickname", "username", "email", "phonenumber"],
+  props: ["id","username", "email"],
   name: "contact",
   data() {
     return {
@@ -29,42 +28,49 @@ export default {
     methods:{
     selectContact(){
       console.log("Selected!");
-      const wholeContact={
-        nickname : this.nickname,
-        username : this.username,
-        email : this.email,
-        phonenumber : this.phonenumber,
+
+      let string = "";
+      for(let i=0; i<this.email.length ; i++){
+        string+=this.email[i];
+        if(i!==this.email.length-1)
+          string+=",";
       }
-      this.$emit('getTheContact' , wholeContact);
+      console.log(string);
+      // const wholeContact={
+      //   username : this.username,
+      //   email : string,
+      // }
+      //
+      // this.$emit('getTheContact' , wholeContact);
       this.$router.push({name: "singlecontact", params: {
-          nickname:this.nickname,
           username:this.username,
-          email:this.email,
-          phonenumber:this.phonenumber}});
+          email:string,
+          id:this.id
+          }});
     },
       checked(){
-        // console.log("Marker is " + this.marked , this.id);
+        this.marked = !this.marked;
+        console.log("Marker is " + this.marked , this.id);
         this.$emit('getCheckedContact' , this.id , this.marked);
       }
   }
 };
 
 </script>
-
 <style scoped>
-.A_contact {
-  padding: 15px;
-  background: snow;
-  box-shadow: 0 0 10px steelblue;
-  position: relative;
-  text-align: left;
-}
-.nickname{
-  display: block;
-  padding: 0 0 5px;
-  front-size:14px;
-}
-.email{
-  border-radius: 4px;
-}
-</style>
+  .A_contact {
+    padding: 15px;
+    background: snow;
+    box-shadow: 0 0 10px steelblue;
+    position: relative;
+    text-align: left;
+  }
+  .nickname{
+    display: block;
+    padding: 0 0 5px;
+    front-size:14px;
+  }
+  .email{
+    border-radius: 4px;
+  }
+</style>le>

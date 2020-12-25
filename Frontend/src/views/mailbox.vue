@@ -1,11 +1,17 @@
+/* eslint-disable */
 <template>
   <div class="mailbox">
+    <div class = "userB">
+      <span class="user"> {{username}}</span>
+      <button class="btnu" v-on:click="tocontacts()" >contacts</button>
+      <button class="btnu" v-on:click="tolog('A')" >logout</button>
+    </div>
+    <br>
     <div class="multi-button">
       <button value="Inbox" @click="changeMessageType($event)">Inbox</button>
       <button value="Sent" @click="changeMessageType($event)">Sent</button>
       <button value="Trash" @click="changeMessageType($event)">Trash</button>
       <button value="Draft" @click="changeMessageType($event)">Draft</button>
-      <button v-on:click="tolog('A')" >logout</button>
     </div>
 
     <br>
@@ -13,7 +19,6 @@
     <div class="multi-button">
       <button v-on:click="tocompose()" >compose</button>
       <button @click = "moveToTrash">{{TrashButton}}</button>
-      <button v-on:click="tocontacts()" >contacts</button>
     </div>
     <br>
     <div class="search">
@@ -21,11 +26,12 @@
       <label class="textl">Choose type of sorting </label>
       <select id="sorting" @change="onChangeSort($event)">
         <option value="Date">Date</option>
-        <option value="priority">Priority</option>
+        <option value="Priority">Priority</option>
         <option value="Sender">Sender</option>
         <option value="Subject">Subject</option>
         <option value="Body">Body</option>
       </select>
+      <br>
       <button class="btn" @click="sortMails">Sort</button>
 
 
@@ -40,7 +46,8 @@
         <option value="Subject">Subject</option>
         <option value="Body">Body</option>
         <option value="Date">Date</option>
-<!--        <option value="priority">body</option>-->
+        <option value="Primary">Primary</option>
+        <option value="Default">Default</option>
       </select>
 
       <br>
@@ -63,28 +70,28 @@
     <br>
     <div>
       <mail
-          v-for="mail in mails"
-          v-bind:key="mail.id"
-          v-bind:id="mail.id"
-          v-bind:head="mail.title"
-          v-bind:email="mail.email"
-          v-bind:date="mail.date"
-          v-bind:body="mail.body"
-          v-bind:isSent="mail.isSent"
-          v-bind:priority="mail.priority"
-          v-bind:attachments ="mail.attachments"
-          v-bind:draft="draft"
-          @getTheMail = "mailSelect"
-          @getCheckedMail = "checkMail"
+              v-for="mail in mails"
+              v-bind:key="mail.id"
+              v-bind:id="mail.id"
+              v-bind:head="mail.title"
+              v-bind:email="mail.email"
+              v-bind:date="mail.date"
+              v-bind:body="mail.body"
+              v-bind:isSent="mail.isSent"
+              v-bind:priority="mail.priority"
+              v-bind:attachments ="mail.attachments"
+              v-bind:draft="draft"
+              @getTheMail = "mailSelect"
+              @getCheckedMail = "checkMail"
       />
       <p v-for="mail in Mails" v-bind:key="mail.id">
         {{mail.id}}
       </p>
     </div>
+
   </div>
 
 </template>
-
 <script>
 import jsonMails from "@/json/jsonMails.json";
 import mail from "@/components/mail";
@@ -103,7 +110,9 @@ export default {
       typeOfMails:"Sent",
 
       sortType:"",
-      draft:""
+      draft:"",
+
+      username:""
 
     };
   },
@@ -193,7 +202,11 @@ export default {
     async sortMails(){
       console.log(this.sortType);
       console.log(this.typeOfMails);
-      const url = `${BACKEND_URL}sort?folder=${this.typeOfMails}&type=${this.sortType}`;
+      let url = ""
+      if(this.sortType === "Priority")
+        url = `${BACKEND_URL}sortPrior?inboxOrSent=${this.typeOfMails}`;
+      else
+          url = `${BACKEND_URL}sort?folder=${this.typeOfMails}&type=${this.sortType}`;
       console.log(url);
       await this.getSentMails(url);
     },
@@ -207,7 +220,12 @@ export default {
       console.log(this.filterType);
       console.log(this.filterName);
       console.log(this.typeOfMails);
-      const url = `${BACKEND_URL}filter?filterName=${this.filterName}&subOrRec=${this.filterType}&inboxOrSent=${this.typeOfMails}`;
+      let url = "";
+      if(this.filterType === "Default" || this.filterType === "Primary")
+         url = `${BACKEND_URL}filter?filterName=${this.filterType}&subOrRec=Priority&inboxOrSent=${this.typeOfMails}`;
+      else
+         url = `${BACKEND_URL}filter?filterName=${this.filterName}&subOrRec=${this.filterType}&inboxOrSent=${this.typeOfMails}`;
+
       console.log(url);
       await this.getSentMails(url);
     },
@@ -221,6 +239,7 @@ export default {
         console.log(sentMails[i]);
         const mail = {
           id : sentMails[i].id,
+          priority:sentMails[i].priority,
           title:sentMails[i].header.subject,
           email:sentMails[i].header.reciever,
           body: sentMails[i].body.body,
@@ -239,130 +258,156 @@ export default {
   async mounted(){
     this.filterType = "Receivers";
     this.sortType = "Date";
-    const url = `${BACKEND_URL}getMails?type=Sent`;
+
+
+    let url = `${BACKEND_URL}getUserUsername?`;
+    await axios.get(url).then(res=>this.username = res.data);
+    url = `${BACKEND_URL}getMails?type=Sent`;
     await this.getSentMails(url);
   }
 }
 
 </script>
 
+
 <style scoped lang="scss">
 
-:root {
-  --border-size: 0.125rem;
-  --duration: 250ms;
-  --ease: cubic-bezier(0.215, 0.61, 0.355, 1);
-  --font-family: monospace;
-  --color-primary: white;
-  --color-secondary: black;
-  --color-tertiary: dodgerblue;
-  --shadow: rgba(0, 0, 0, 0.1);
-  --space: 1rem;
-}
+  :root {
+    --border-size: 0.125rem;
+    --duration: 250ms;
+    --ease: cubic-bezier(0.215, 0.61, 0.355, 1);
+    --font-family: monospace;
+    --color-primary: white;
+    --color-secondary: black;
+    --color-tertiary: dodgerblue;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --space: 1rem;
+  }
 
-* {
-  box-sizing: border-box;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-body {
-  height: 100vh;
-  margin: 0 auto;
-  display: grid;
-  place-items: center;
-  padding: calc(var(--space) * 2);
-  max-width: 700px;
-}
+  body {
+    height: 100vh;
+    margin: 0 auto;
+    display: grid;
+    place-items: center;
+    padding: calc(var(--space) * 2);
+    max-width: 700px;
+  }
 
-.search{
-  padding: 15px;
-  background: greenyellow;
-  box-shadow: 0 0 10px steelblue;
-  position: relative;
-  text-align: center;
-}
-.textl{
-  font-size: 1.5rem;
-}
-.btn{
-  flex-grow: 1;
-  cursor: pointer;
-  position: relative;
-  padding:
-      calc(var(--space) / 1.125)
-      var(--space)
-      var(--space);
-  background: yellow;
-  font-size: 16px;
-  width:100px;
-  height: 40px;
-  border-radius: 8px;
+  .search{
+    padding: 15px;
+    background: mediumpurple;
+    box-shadow: 0 0 10px steelblue;
+    position: relative;
+    text-align: center;
+  }
+  .textl{
+    font-size: 1.5rem;
+  }
+  .btn{
+    flex-grow: 1;
+    cursor: pointer;
+    position: relative;
+    padding:
+            calc(var(--space) / 1.125)
+            var(--space)
+            var(--space);
+    background: lightgray;
+    font-size: 16px;
+    width:100px;
+    height: 40px;
+    border-radius: 8px;
 
-}
-.btn:hover,
-.btn:focus {
-  flex-grow: 2;
-  color: white;
-  outline: none;
-  text-shadow: none;
-  background: greenyellow;
+  }
+  .btn:hover,
+  .btn:focus {
+    flex-grow: 2;
+    color: white;
+    outline: none;
+    text-shadow: none;
+    background: mediumpurple;
 
-}
+  }
 
-.multi-button button:focus {
-  outline: var(--border-size) dashed var(--color-primary);
-  outline-offset: calc(var(--border-size) * -3);
-}
+  .multi-button button:focus {
+    outline: var(--border-size) dashed var(--color-primary);
+    outline-offset: calc(var(--border-size) * -3);
+  }
 
 
-.multi-button {
-  display: flex;
-  width: 100%;
-  box-shadow: var(--shadow) 4px 4px;
-}
+  .multi-button {
+    display: flex;
+    width: 100%;
+    box-shadow: var(--shadow) 4px 4px;
+  }
 
-.multi-button button {
-  flex-grow: 1;
-  cursor: pointer;
-  position: relative;
-  padding:
-      calc(var(--space) / 1.125)
-      var(--space)
-      var(--space);
-  background: yellow;
-  font-size: 1.5rem;
-  font-family: var(--font-family);
-  text-shadow: var(--shadow) 2px 2px;
-  transition: flex-grow var(--duration) var(--ease);
-}
+  .multi-button button {
+    flex-grow: 1;
+    cursor: pointer;
+    position: relative;
+    padding:
+            calc(var(--space) / 1.125)
+            var(--space)
+            var(--space);
+    background: lightgray;
+    font-size: 1.5rem;
+    font-family: var(--font-family);
+    text-shadow: var(--shadow) 2px 2px;
+    transition: flex-grow var(--duration) var(--ease);
+  }
 
-.multi-button button + button {
-  border-left: var(--border-size) solid black;
-  margin-left: calc(var(--border-size) * -1);
-}
+  .multi-button button + button {
+    border-left: var(--border-size) solid black;
+    margin-left: calc(var(--border-size) * -1);
+  }
 
-.multi-button button:hover,
-.multi-button button:focus {
-  flex-grow: 2;
-  color: white;
-  outline: none;
-  text-shadow: none;
-  background: greenyellow;
+  .multi-button button:hover,
+  .multi-button button:focus {
+    flex-grow: 2;
+    color: white;
+    outline: none;
+    text-shadow: none;
+    background: mediumpurple;
 
-}
+  }
 
-.multi-button button:focus {
-  outline: var(--border-size) dashed var(--color-primary);
-  outline-offset: calc(var(--border-size) * -3);
-}
+  .multi-button button:focus {
+    outline: var(--border-size) dashed var(--color-primary);
+    outline-offset: calc(var(--border-size) * -3);
+  }
 
-.multi-button:hover button:focus:not(:hover) {
-  flex-grow: 1;
-  color: var(--color-secondary);
-  background-color: var(--color-primary);
-  outline-color: var(--color-tertiary);
-}
+  .multi-button:hover button:focus:not(:hover) {
+    flex-grow: 1;
+    color: var(--color-secondary);
+    background-color: var(--color-primary);
+    outline-color: var(--color-tertiary);
+  }
 
-.multi-button button:active {
-  transform: translateY(var(--border-size));
-}
+  .multi-button button:active {
+    transform: translateY(var(--border-size));
+  }
+
+  .user{
+    color: #d04764; font-family: 'Lobster', cursive; font-size: 36px; font-weight: normal; line-height: 48px; margin: 0 0 18px; text-shadow: 1px 0 0 #fff; }
+  .btnu{
+    background-color: lightgray;
+    width: 100px;
+    height: 40px;
+  }
+
+  .userB{
+    padding: 15px;
+    background: royalblue;
+    box-shadow: 0 0 10px steelblue;
+    position: relative;
+    text-align: center;}
+  .btnu:hover,
+  .btnu:focus {
+
+    background: mediumpurple;
+
+  }
 </style>

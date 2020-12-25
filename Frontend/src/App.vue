@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div id="nav"></div>
   <router-view />

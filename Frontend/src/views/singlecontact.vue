@@ -1,22 +1,24 @@
+/* eslint-disable */
 <template>
   <div>
     <div class="multi-button">
       <button v-on:click="tocompose()">Send Mail</button>
       <button v-on:click="tocontact()">Delete Contact</button>
+      <button v-on:click="toaddcontact()">Edit Contact</button>
       <button v-on:click="tocontact()">Return</button>
     </div>
     <br>
     <br>
     <div class="S_contact" >
-      <h1 class = "nickname"> name :{{ $route.params.nickname  }}</h1>
-      <h3 class = "username"> username : {{ $route.params.username }}</h3>
-      <h3 class ="email"> email: : {{$route.params.email}}</h3>
-      <h3 class="phonenumber"> phone number :{{ $route.params.phonenumber }}</h3>
+      <h1 class = "contactname"> Name :{{ $route.params.username  }}</h1>
+      <h3 class ="email"> Email: : {{$route.params.email}}</h3>
     </div>
   </div>
 </template>
 
 <script>
+
+import {BACKEND_URL , axios} from "../main";
 
 export default {
   data(){
@@ -25,16 +27,32 @@ export default {
     }
   },
   methods: {
-    tocontact: function() {
-      this.$router.push("/contacts");
+     tocontact: async function() {
+       await this.deleteContact();
+       this.$router.push("/contacts");
     },
     tocompose: function() {
-      this.$router.push({name: "compose", params: {reply:this.email}});
+      console.log(this.$route.params.email)
+      this.$router.push({name: "compose", params: {
+        email:this.$route.params.email
+      }});
     },
     toaddcontact: function() {
-      this.$router.push("/addcontact");
-    },
-  }
+      this.$router.push({
+        name: "addcontact",
+        params: {
+          email: this.$route.params.email,
+          username: this.$route.params.username,
+          edit:true
+        }});
+      },
+    async deleteContact(){
+       const list = [this.$route.params.username];
+       const url = `${BACKEND_URL}deleteContacts`;
+       await axios.post(url ,list);
+    }
+  },
+
 }
 </script>
 

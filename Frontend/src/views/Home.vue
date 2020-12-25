@@ -1,9 +1,6 @@
 <template>
   <div class="home">
     <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
-<!--    <FileReader @load = "loadData"/>-->
-    <file></file>
-<!--    <p>{{date}}</p>-->
   </div>
 </template>
 
@@ -26,10 +23,6 @@
     methods:{
 
     },
-    mounted(){
-        console.log("Download");
-        return axios.get(`${BACKEND_URL}saveFile`);
-    }
   })
   export default class Home extends Vue{
 

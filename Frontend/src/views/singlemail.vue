@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div>
     <div class="multi-button">
@@ -8,23 +9,23 @@
     <br>
     <br>
     <div class="S_mail" >
-      <h1 class = "mail-Head">{{ $route.params.head  }}</h1>
-      <h3 class = "email" > {{email}}</h3>
+      <h1 class = "Head">{{ $route.params.head}}</h1>
+      <h3 class = "email" > {{$route.params.email}}</h3>
       <h4 class ="mail-date">date : {{$route.params.date}}</h4>
       <h2>--------------------------------------------------------------------------------------</h2>
       <h2 class="mail-body">{{ $route.params.body }}</h2>
-      <h1>--------------------------------------------------------------------------------------</h1>
+      <h2>--------------------------------------------------------------------------------------</h2>
       <h4>attachments:</h4>
-      <select id="sel" @change="switchView($event, $event.target.selectedIndex)" >
-        <option
-                v-for="attachment in $route.params.attachments"
-                :key="attachment.label"
-                :value="attachment.value"
-        >
-            {{ attachment }}
-        </option>
+      <select id="sel" ref = "select" @change="switchView($event, $event.target.selectedIndex)" >
+<!--        <option-->
+<!--                v-for="attachment in $route.params.attachments"-->
+<!--                :key="attachment.label"-->
+<!--                :value="attachment.value"-->
+<!--        >-->
+<!--          {{ attachment }}-->
+<!--        </option>-->
       </select>
-      <button id = "dbtn" @click = "download">download</button>
+      <button id = "dbtn" @click = "downloadAttachment">download</button>
       <br>
     </div>
   </div>
@@ -32,20 +33,54 @@
 
 <script>
 
+  import {BACKEND_URL , axios} from "../main";
+
   export default {
     data(){
       return {
-        name: "singlemail",
-        email:""
+        email:"",
+        attachments:this.$route.params.attachments,
+        index: 0,
       }
     },
+    name: "singlemail",
     methods: {
       tomail: function() {
         this.$router.push("/mailbox");
       },
       tocompose: function() {
-        this.$router.push({name: "compose", params: {reply:this.email}});
+        this.$router.push({name: "compose", params: {
+            head:"re"+this.$route.params.head,
+            email:this.$route.params.email,
+            date:"",
+            body:"",
+            priority:"",
+            isSent:this.isSent
+          }})
       },
+      switchView(event , selectedIndex){
+        const sel = document.querySelector('#sel');
+        console.log(event, selectedIndex);
+        sel.selectedIndex = selectedIndex;
+        this.index = selectedIndex;
+
+      },
+      async downloadAttachment(){
+        const sel = document.querySelector('#sel');
+        console.log(this.index)
+        let typeOfMail;
+        console.log(this.$route.params.isSent)
+        if(this.$route.params.isSent === "true")
+          typeOfMail="sent";
+        else
+          typeOfMail = "Inbox";
+
+        const array = this.attachments[this.index].split("\\");
+        //Here we download
+        const url = `${BACKEND_URL}download?id=${this.$route.params.id}&type=${typeOfMail}&name=${array[array.length-1]}`;
+        console.log(url);
+        window.open(url);
+      }
     },
     mounted(){
       console.log("Called in SingleMail Line 38"+this.$route.params.isSent);
@@ -56,6 +91,15 @@
       else{
         console.log("False!");
         this.email = "From : "+this.$route.params.email;
+      }
+
+      const docSel = this.$refs.select;
+      console.log(docSel);
+      console.log(this.attachments);
+      for(let i = 0  ;i< this.attachments.length ; i++){
+        const arr = this.attachments[i].split("\\")
+        const option = new Option(arr[arr.length-1] ,arr[arr.length-1]);
+        docSel.add(option, undefined);
       }
     }
   }
@@ -79,10 +123,6 @@
     text-align: left;
     border-radius: 4px;
   }
-
-
-
-
 
   :root {
     --border-size: 0.125rem;
@@ -109,6 +149,13 @@
     max-width: 700px;
   }
 
+
+  .multi-button button:focus {
+    outline: var(--border-size) dashed var(--color-primary);
+    outline-offset: calc(var(--border-size) * -3);
+  }
+
+
   .multi-button {
     display: flex;
     width: 100%;
@@ -123,7 +170,7 @@
             calc(var(--space) / 1.125)
             var(--space)
             var(--space);
-    background: yellow;
+    background: lightgray;
     font-size: 1.5rem;
     font-family: var(--font-family);
     text-shadow: var(--shadow) 2px 2px;
@@ -141,7 +188,7 @@
     color: white;
     outline: none;
     text-shadow: none;
-    background: greenyellow;
+    background: mediumpurple;
 
   }
 
@@ -160,6 +207,8 @@
   .multi-button button:active {
     transform: translateY(var(--border-size));
   }
+
+
   #dbtn{
     flex-grow: 1;
     cursor: pointer;

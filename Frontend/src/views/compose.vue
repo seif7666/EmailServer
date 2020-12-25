@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div>
     <div class="multi-button">
@@ -9,13 +10,8 @@
     <br>
     <div class="compose">
       <br>
-      <label for="priority">Choose  priority of the mail:</label>
-      <select id="priority">
-        <option value="very important">very important</option>
-        <option value="important">important</option>
-        <option value="normal">normal</option>
-        <option value="not important">not important</option>
-      </select>
+      <label >Choose  priority of the mail:</label>
+      <input type="checkbox" @change="changePriority"/>
 
       <p>To:</p>
       <textarea class ="email" v-model="email" placeholder="Enter the emails" cols="40" rows="2" ></textarea>
@@ -27,9 +23,6 @@
       <br />
       <file  @getAttachments = "setAttachments"/>
     </div>
-
-
-    {{$route.params.reply}}
   </div>
 </template>
 
@@ -39,7 +32,6 @@
   import FileReader from "@/components/FileReader";
   export default {
     components: { file},
-    props: ["head1", "email1", "body1","priority1" ,"attachments1"],
     data() {
       return {
         name: "compose",
@@ -47,7 +39,6 @@
         title: this.$route.params.head,
         body: this.$route.params.body,
         priority: this.$route.params.priority,
-        attachments: this.$route.params.attachments,
         // email: "",
         // title: "",
         // body: "",
@@ -62,20 +53,26 @@
         this.files = files;
         console.log(files);
       },
+      changePriority(){
+        this.priority = !this.priority;
+      },
       /**
        * Here we gather the mail and send it
        * First:gather receivers
        */
       async sendOrDraft(e){
         console.log(e.target.value)
-        const url = `${BACKEND_URL}compose?type=${e.target.value}&title=${this.title}&body=${this.body}&receivers=${this.email}`;
-
-        const formData = new FormData();
+        console.log(this.email);
+        const url = `${BACKEND_URL}compose?type=${e.target.value}&title=${this.title}&body=${this.body}&receivers=${this.email}&priority=${this.priority}`;
+        console.log(url);
+        let formData = new FormData();
         for(let i = 0 ;i<this.files.length ; i++)
           formData.append('myFile', this.files[i]);
 
         // list.push(receivers);
         // list.push(formData);
+        if(e.target.value === "Draft")
+          formData = null;
 
         let confirm = "";
         await axios.post(url , formData).then(res=>confirm = res.data+'');
@@ -90,7 +87,10 @@
         this.files = files;
         console.log(this.files);
       }
-
+    },
+    mounted(){
+      if(this.priority === undefined)
+        this.priority = false;
     }
   }
 </script>
@@ -158,6 +158,12 @@
     max-width: 700px;
   }
 
+  .multi-button button:focus {
+    outline: var(--border-size) dashed var(--color-primary);
+    outline-offset: calc(var(--border-size) * -3);
+  }
+
+
   .multi-button {
     display: flex;
     width: 100%;
@@ -172,7 +178,7 @@
             calc(var(--space) / 1.125)
             var(--space)
             var(--space);
-    background: yellow;
+    background: lightgray;
     font-size: 1.5rem;
     font-family: var(--font-family);
     text-shadow: var(--shadow) 2px 2px;
@@ -190,7 +196,7 @@
     color: white;
     outline: none;
     text-shadow: none;
-    background: greenyellow;
+    background: mediumpurple;
 
   }
 
@@ -209,4 +215,5 @@
   .multi-button button:active {
     transform: translateY(var(--border-size));
   }
+
 </style>

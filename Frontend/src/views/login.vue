@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div class="login">
     <h1>Username</h1>

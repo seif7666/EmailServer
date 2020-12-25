@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div class="hello">
     <div class="bg"></div>

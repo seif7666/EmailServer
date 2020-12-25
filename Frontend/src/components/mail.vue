@@ -1,9 +1,10 @@
+/* eslint-disable */
 <template>
   <div class="A_mail">
     <div   @click = "selectMail">
       <h3 class = "mail-Head">{{ head }}</h3>
       <span class = "email">  {{ senderOrReceivers }}</span>
-      <span class = "priority"> priority:{{ priority }}</span>
+      <span class = "priority"> priority:{{ priority ? "Primary" : "Default" }}</span>
       <span class ="mail-date">{{date}}</span>
       <p class="mail-body">{{ body +" "+id}}</p>
     </div>
@@ -72,12 +73,14 @@
           isSent:this.isSent
 
         }
-        this.$emit('getTheMail' , wholeMail);
+        // this.$emit('getTheMail' , wholeMail);
         this.$router.push({name: "singlemail", params: {
+            id:this.id,
             head:this.head,
             email:this.email,
             date:this.date,
             body:this.body,
+            attachments:this.attachments.attaches,
             isSent:this.isSent
           }});
       },

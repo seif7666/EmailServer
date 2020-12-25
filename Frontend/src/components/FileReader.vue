@@ -1,3 +1,4 @@
+/* eslint-disable */
 <template>
   <div>
     <label class="text-reader">
