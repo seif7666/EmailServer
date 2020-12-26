@@ -5,7 +5,7 @@
       <button v-on:click="tocompose()">Send Mail</button>
       <button v-on:click="tocontact()">Delete Contact</button>
       <button v-on:click="toaddcontact()">Edit Contact</button>
-      <button v-on:click="tocontact()">Return</button>
+      <button v-on:click="tocontact2()">Return</button>
     </div>
     <br>
     <br>
@@ -27,15 +27,18 @@ export default {
     }
   },
   methods: {
-     tocontact: async function() {
-       await this.deleteContact();
-       this.$router.push("/contacts");
+    tocontact: async function() {
+      await this.deleteContact();
+      this.$router.push("/contacts");
+    },
+    tocontact2: async function() {
+      this.$router.push("/contacts");
     },
     tocompose: function() {
       console.log(this.$route.params.email)
       this.$router.push({name: "compose", params: {
-        email:this.$route.params.email
-      }});
+          email:this.$route.params.email
+        }});
     },
     toaddcontact: function() {
       this.$router.push({
@@ -45,11 +48,11 @@ export default {
           username: this.$route.params.username,
           edit:true
         }});
-      },
+    },
     async deleteContact(){
-       const list = [this.$route.params.username];
-       const url = `${BACKEND_URL}deleteContacts`;
-       await axios.post(url ,list);
+      const list = [this.$route.params.username];
+      const url = `${BACKEND_URL}deleteContacts`;
+      await axios.post(url ,list);
     }
   },
 
@@ -107,6 +110,11 @@ body {
   padding: calc(var(--space) * 2);
   max-width: 700px;
 }
+.multi-button button:focus {
+  outline: var(--border-size) dashed var(--color-primary);
+  outline-offset: calc(var(--border-size) * -3);
+}
+
 
 .multi-button {
   display: flex;
@@ -122,7 +130,7 @@ body {
       calc(var(--space) / 1.125)
       var(--space)
       var(--space);
-  background: yellow;
+  background: lightgray;
   font-size: 1.5rem;
   font-family: var(--font-family);
   text-shadow: var(--shadow) 2px 2px;
@@ -140,7 +148,7 @@ body {
   color: white;
   outline: none;
   text-shadow: none;
-  background: greenyellow;
+  background: mediumpurple;
 
 }
 
