@@ -51,15 +51,6 @@
       <br />
       <label class="textl"> Date : </label>
       <input type="date" v-model="filter_date" />
-      <label class="textl"> priority : </label>
-      <select id="priority">
-        <option value="very important">none</option>
-        <option value="very important">very important</option>
-        <option value="important">important</option>
-        <option value="normal">normal</option>
-        <option value="not important">not important</option>
-      </select>
-
       <br />
       <br />
       <button class="btn" @click="filterMails">search</button>
