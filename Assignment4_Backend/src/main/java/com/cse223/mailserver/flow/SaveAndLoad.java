@@ -1,9 +1,6 @@
 package com.cse223.mailserver.flow;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 import com.google.gson.Gson;
@@ -74,7 +71,7 @@ public class SaveAndLoad {
 		Gson gson=new Gson();
 		String json= gson.toJson(messageCreator);
 		JSONObject userJson2=new JSONObject();
-		userJson2.put(Constants.Sent,json);
+		userJson2.put(Constants.SENT,json);
 		arrayOfSent.add(userJson2);
 
 		FileWriter fileWriter=new FileWriter(Constants.DATABASE_PATH+mail+"//"+type+Constants.INDEX_JSON_PATH);
@@ -109,7 +106,7 @@ public class SaveAndLoad {
 			for (int i = 0; i < employeeList.size(); i++) {
 				JSONObject objects = (JSONObject) employeeList.get(i);
 
-				String user = (String) objects.get(Constants.Sent);
+				String user = (String) objects.get(Constants.SENT);
 				Gson gson = new Gson();
 				MessageCreator json = gson.fromJson(user, MessageCreator.class);
 				MessagesArrayList.add(json);
@@ -194,6 +191,17 @@ public class SaveAndLoad {
 		fileWriter.flush();
 		fileWriter.close();
 		System.out.println(userJson2);
+	}
+
+	public void makeFirstDirectory() throws IOException {
+		File file9 = new File(Constants.DATABASE_PATH);
+		file9.mkdir();
+		File file10 = new File(Constants.ACCOUNTS_PATH  );
+		file10.mkdir();
+
+		File indexFileDraft = new File(Constants.ACCOUNTS_JSON_PATH );
+		System.out.println(Constants.ACCOUNTS_JSON_PATH);
+		indexFileDraft.createNewFile();
 	}
 
 }

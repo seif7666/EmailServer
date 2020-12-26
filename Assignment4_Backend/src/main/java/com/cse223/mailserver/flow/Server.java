@@ -15,11 +15,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 
@@ -43,6 +42,7 @@ public class Server {
 
     ////////////////login///////////////////////////////////////////////////
     public boolean LOGIN(String Email,String password) throws FileNotFoundException, IOException, ParseException, java.text.ParseException {
+        save.makeFirstDirectory();
         Login loginClass=new Login(Email,password);
         userInterface=loginClass.ExistOrNot();
 
@@ -62,6 +62,7 @@ public class Server {
     }
     /////////////////////////signup///////////////////////////////////////////////
     public boolean signUp(UserClass user) throws IOException, ParseException {
+        save.makeFirstDirectory();
         signUp signUp=new signUp();
         //add Object Of user Here
         System.out.println(user);
@@ -71,6 +72,11 @@ public class Server {
     }
     ///////////////////////message dealer//////////////////////////////////////////////////////////
     public boolean  createMessage(String subject , String body , ArrayList<MultipartFile> attaches, ArrayList<String> reciver , String sentOrDart,boolean priority) throws IOException, ParseException{
+        for(int i=0; i<reciver.size();i++) {
+            if(!exist_user(reciver.get(i))||user.getEmail().equals(reciver.get(i))){
+                return false;
+            }
+        }
         SaveAndLoad saveAndLoad =new SaveAndLoad();
         Date date = new Date();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -79,30 +85,28 @@ public class Server {
         MessageBody Body = new MessageBody(body);
         Attachments Attaches;
         MessageCreator myMessage ;
-        if (sentOrDart.equals(Constants.Sent)) {
-            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_SENT,saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ));
+        if (sentOrDart.equals(Constants.SENT)) {
+            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_SENT,saveAndLoad.getMessageID(user.getEmail(),Constants.SENT ));
             Attaches = new Attachments(attachementsDealing);
-            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(),Constants.Sent ),priority);
+            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(),Constants.SENT ),priority);
 
-            saveAndLoad.sendMessage(myMessage, Constants.Sent, myMessage.getHeader().getSender());
+            saveAndLoad.sendMessage(myMessage, Constants.SENT, myMessage.getHeader().getSender());
             for (int i = 0; i < reciver.size(); i++) {
-                if (!exist_user(myMessage.getHeader().getReciever().get(i))) {
-                    return false;
-                }
-                attachementsDealing=saveMultipartFile(attaches,myMessage.getHeader().getReciever().get(i),Constants.ATTACHMENTS_INBOX,saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox));
+
+                attachementsDealing=saveMultipartFile(attaches,myMessage.getHeader().getReciever().get(i),Constants.ATTACHMENTS_INBOX,saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.INBOX));
                 Attaches = new Attachments(attachementsDealing);
-                header = new MessageHeader(user.getEmail(),reciver,subject,Constants.Inbox,priority);
-                myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.Inbox),priority);
-                saveAndLoad.sendMessage(myMessage, Constants.Inbox, myMessage.getHeader().getReciever().get(i));
+                header = new MessageHeader(user.getEmail(),reciver,subject,Constants.INBOX,priority);
+                myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.INBOX),priority);
+                saveAndLoad.sendMessage(myMessage, Constants.INBOX, myMessage.getHeader().getReciever().get(i));
             }
         }
         else{
-            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_DRAFTS,saveAndLoad.getMessageID(user.getEmail(),Constants.Draft ));
+            ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_DRAFTS,saveAndLoad.getMessageID(user.getEmail(),Constants.DRAFT ));
             Attaches = new Attachments(attachementsDealing);
-            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(), Constants.Draft),priority);
-            saveAndLoad.sendMessage(myMessage, Constants.Draft, myMessage.getHeader().getSender());
+            myMessage = new MessageCreator(header,Body,Attaches, dtf.format(now),saveAndLoad.getMessageID(user.getEmail(), Constants.DRAFT),priority);
+            saveAndLoad.sendMessage(myMessage, Constants.DRAFT, myMessage.getHeader().getSender());
         }
-        if (sentOrDart.equals(Constants.Sent))
+        if (sentOrDart.equals(Constants.SENT))
             user.addsentMessage((Sent)myMessage.buildSentMessage());
         else
             user.addDraftMessage((Draft) myMessage.buildDraftMessage());
@@ -121,7 +125,7 @@ public class Server {
                 previousMessage.remove(i);
             }
             if(messageWeWant==null)return false;
-            saveAndLoad.sendMessage(messageWeWant, Constants.Trash, user.getEmail());
+            saveAndLoad.sendMessage(messageWeWant, Constants.TRASH, user.getEmail());
         }
         saveAndLoad.ClearFileContent(user.getEmail(), folder);
         for(int i=0;i<previousMessage.size();i++) {
@@ -133,7 +137,7 @@ public class Server {
 
     public boolean restoreFromTrash(int messageID) throws IOException, ParseException {
         SaveAndLoad saveAndLoad =new SaveAndLoad();
-        ArrayList<MessageCreator> previousMessage=saveAndLoad.readMessages(user.getEmail(), Constants.Trash);
+        ArrayList<MessageCreator> previousMessage=saveAndLoad.readMessages(user.getEmail(), Constants.TRASH);
         MessageCreator messageWeWant =null;
         for(int i=0;i<previousMessage.size();i++) {
             if(previousMessage.get(i).getID()==messageID) {
@@ -143,9 +147,9 @@ public class Server {
             if(messageWeWant==null)return false;
             saveAndLoad.sendMessage(messageWeWant, messageWeWant.getHeader().getFolderName(), user.getEmail());
         }
-        saveAndLoad.ClearFileContent(user.getEmail(), Constants.Trash);
+        saveAndLoad.ClearFileContent(user.getEmail(), Constants.TRASH);
         for(int i=0;i<previousMessage.size();i++) {
-            saveAndLoad.sendMessage(previousMessage.get(i), Constants.Trash, user.getEmail());
+            saveAndLoad.sendMessage(previousMessage.get(i), Constants.TRASH, user.getEmail());
         }
         return true;
 
@@ -156,7 +160,7 @@ public class Server {
         SaveAndLoad saveAndLoad =new SaveAndLoad();
         ArrayList<MessageCreator> messages;
         try {
-            messages=saveAndLoad.readMessages(user.getEmail(), Constants.Trash);
+            messages=saveAndLoad.readMessages(user.getEmail(), Constants.TRASH);
             if(messages == null)
                 return;
         }catch (Exception e) {
@@ -173,9 +177,9 @@ public class Server {
                 messages.remove(i);
             }
         }
-        saveAndLoad.ClearFileContent(user.getEmail(), Constants.Trash);
+        saveAndLoad.ClearFileContent(user.getEmail(), Constants.TRASH);
         for(int i=0;i<messages.size();i++) {
-            saveAndLoad.sendMessage(messages.get(i), Constants.Trash, user.getEmail());
+            saveAndLoad.sendMessage(messages.get(i), Constants.TRASH, user.getEmail());
         }
 
     }
@@ -277,16 +281,16 @@ public class Server {
 
     private ArrayList<? extends Message> getMessages(String subjectOrReceiversOrBodyOrDateOrPriority, ArrayList<? extends Message> result, Criteria subjectFilter) {
         switch (subjectOrReceiversOrBodyOrDateOrPriority) {
-            case Constants.Inbox:
+            case Constants.INBOX:
                 result = subjectFilter.filterCriteria(user.getInbox());
                 break;
-            case Constants.Sent:
+            case Constants.SENT:
                 result = subjectFilter.filterCriteria(user.getSentMessage());
                 break;
-            case Constants.Trash:
+            case Constants.TRASH:
                 result = subjectFilter.filterCriteria(user.getTrash());
                 break;
-            case Constants.Draft:
+            case Constants.DRAFT:
                 result = subjectFilter.filterCriteria(user.getDraft());
                 break;
         }
@@ -415,10 +419,10 @@ public class Server {
 
     public void fillCurrentUser(String Email ) throws FileNotFoundException, IOException, ParseException {
         SaveAndLoad saveAndLoad = new SaveAndLoad();
-        ArrayList<MessageCreator> sent= saveAndLoad.readMessages(Email,Constants.Sent);
-        ArrayList<MessageCreator> Inbox= saveAndLoad.readMessages(Email,Constants.Inbox);
-        ArrayList<MessageCreator> draft= saveAndLoad.readMessages(Email,Constants.Draft);
-        ArrayList<MessageCreator> trash= saveAndLoad.readMessages(Email,Constants.Trash);
+        ArrayList<MessageCreator> sent= saveAndLoad.readMessages(Email,Constants.SENT);
+        ArrayList<MessageCreator> Inbox= saveAndLoad.readMessages(Email,Constants.INBOX);
+        ArrayList<MessageCreator> draft= saveAndLoad.readMessages(Email,Constants.DRAFT);
+        ArrayList<MessageCreator> trash= saveAndLoad.readMessages(Email,Constants.TRASH);
         ArrayList<Contact> contact= saveAndLoad.readContactsFromJson(user.getEmail());
         if(Inbox==null) {
         }else {
@@ -449,6 +453,39 @@ public class Server {
             for(int i=0; i<contact.size();i++) {
                 user.addContact(contact.get(i));
             }
+        }
+    }
+
+    public ArrayList<Contact> sortContact() throws FileNotFoundException, IOException, ParseException{
+        SaveAndLoad saveAndLoad=new SaveAndLoad();
+        ArrayList<Contact> contacts=saveAndLoad.readContactsFromJson(user.getEmail());
+        if(contacts==null) {
+            return null;
+        }else {
+            for (int i = 0; i < contacts.size() - 1; i++) {
+                for (int j = 0; j < contacts.size() - i - 1; j++){
+                    int compare = contacts.get(j).getName().compareToIgnoreCase(contacts.get(j+1).getName());
+                    if (compare > 0)
+                    {
+                        Contact contact=new Contact(contacts.get(j+1).getName(),contacts.get(j+1).getEmails());
+                        contacts.get(j+1).setName(contacts.get(j).getName());
+                        contacts.get(j+1).setEmails(contacts.get(j).getEmails());
+                        contacts.get(j).setName(contact.getName());
+                        contacts.get(j).setEmails(contact.getEmails());
+                    }
+                }
+
+            }
+            for(int i=0;i<contacts.size();i++) {
+                ArrayList<String>contactsEmail=contacts.get(i).getEmails();
+                ArrayList<String>contactsEmailSorted=new ArrayList<String>();
+                Collections.sort(contactsEmail);
+                for(String counter: contactsEmail){
+                    contactsEmailSorted.add(counter);
+                }
+                contacts.get(i).setEmails(contactsEmailSorted);
+            }
+            return contacts;
         }
     }
 

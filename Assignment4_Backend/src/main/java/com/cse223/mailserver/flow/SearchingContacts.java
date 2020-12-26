@@ -11,9 +11,10 @@ public class SearchingContacts {
     }
 
     public ArrayList<Contact> searchingByName(String name){
+        name = name.toLowerCase();
         ArrayList<Contact> contactsResults = new ArrayList<>();
         for (Contact contact : contacts){
-            if (contact.getName().contains(name)){
+            if ((contact.getName().toLowerCase()).contains(name)){
                 contactsResults.add(contact);
             }
         }
@@ -23,10 +24,11 @@ public class SearchingContacts {
     public ArrayList<Contact> searchingByEmails(String Email){
         if(contacts == null)
             contacts = new ArrayList<>();
+        Email = Email.toLowerCase();
         ArrayList<Contact> contactsResults = new ArrayList<>();
         for (Contact contact : contacts){
             for (String email : contact.getEmails())
-            if (email.contains(Email)){
+            if ((email.toLowerCase()).contains(Email)){
                 contactsResults.add(contact);
             }
         }
