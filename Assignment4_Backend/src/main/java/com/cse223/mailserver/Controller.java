@@ -28,6 +28,12 @@ import java.util.Collections;
 public class Controller {
     Server server = Server.getServer();//Server to get and send data
 
+
+    @GetMapping("/")
+    public String checkServer(){
+        return "HELLO WORLD";
+    }
+
     /**
      *Login and SignUp.
      */
@@ -162,23 +168,7 @@ public class Controller {
 
     @PostMapping("/file")
     public void saveFile(HttpServletRequest request,@RequestParam("myFile")MultipartFile[] multipartFiles) throws IOException {
-//
-//        for(MultipartFile file:multipartFiles) {
-//            try {
-//                Path path=Paths.get(Constants.DATABASE_PATH+file.getOriginalFilename());
-//                System.out.println(path);
-//                System.out.println(file.getInputStream());
-//                try {
-//                    Files.copy(file.getInputStream(),path);
-//                } catch (IOException e) {
-//                    // TODO Auto-generated catch block
-//                    e.printStackTrace();
-//                }
-//            } catch (IOException e) {
-//                // TODO Auto-generated catch block
-//                e.printStackTrace();
-//            }
-//        }
+
         for (MultipartFile multipartFile : multipartFiles) {
             String directory = multipartFile.getOriginalFilename();
 
@@ -186,12 +176,6 @@ public class Controller {
 
             Files.copy(multipartFile.getInputStream(), path, StandardCopyOption.REPLACE_EXISTING);
         }
-
-//            System.out.println("Directory " + directory);
-//            File fileSave = new File("\\"+multipartFile.getOriginalFilename() );
-            //File fileSave = new File(directory);
-//            System.out.println(fileSave.getAbsolutePath());
-//            multipartFile.transferTo(fileSave);
     }
     @GetMapping("/download")
     public ResponseEntity<Resource> downloadFile(HttpServletRequest request , @RequestParam(name="id")String id , @RequestParam(name="type") String type,
@@ -228,9 +212,13 @@ public class Controller {
     @GetMapping("/getContacts")
     @ResponseBody
     public ArrayList<Contact> getContacts(){
-        ArrayList<Contact> list = server.getContacts();
-        System.out.println("List of contacts : "+list);
-        return list;
+        try {
+            ArrayList<Contact> list = server.sortContact();
+            System.out.println("List of contacts : " + list);
+            return list;
+        }catch (Exception e){
+            return null;
+        }
     }
 
     @GetMapping("/addContact")

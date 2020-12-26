@@ -1,10 +1,6 @@
 package com.cse223.mailserver.flow;
 
 
-
-import java.util.ArrayList;
-import java.util.Date;
-
 public class MessageCreator {
     private MessageBody body;
     private MessageHeader header;
@@ -16,6 +12,7 @@ public class MessageCreator {
     private Message messageDraft;
     private Message messageTrash;
     private boolean priority=false;
+    private MessageFactory factory= new MessageFactory();
 
 
     public MessageCreator( MessageHeader header, MessageBody body,Attachments attaches, String time,int ID,boolean priority) {
@@ -78,19 +75,19 @@ public class MessageCreator {
     }
 
     public Message buildSentMessage() {
-        messageSent= new Sent(ID,body,header,attaches,time , priority);
+        messageSent= factory.getMessage(Constants.SENT,header,body,attaches,time,ID,priority);
         return  messageSent;
     }
     public Message buildInboxMessage() {
-        messageInbox= new Inbox(ID,body,header,attaches,time , priority);
+        messageInbox= factory.getMessage(Constants.INBOX,header,body,attaches,time,ID,priority);
         return  messageInbox;
     }
     public Message buildDraftMessage() {
-        messageDraft= new Draft(ID,body,header,attaches,time , priority);
+        messageDraft= factory.getMessage(Constants.DRAFT,header,body,attaches,time,ID,priority);
         return  messageDraft;
     }
     public Message builTrashMessage() {
-        messageTrash= new Trash(ID,body,header,attaches,time , priority);
+        messageTrash= factory.getMessage(Constants.TRASH,header,body,attaches,time,ID,priority);
         return  messageTrash;
     }
 

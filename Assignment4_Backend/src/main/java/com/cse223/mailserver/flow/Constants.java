@@ -13,24 +13,24 @@ public  class Constants {
     public static final String SENDER = "Sender";
     public static final String RECEIVERS = "Receivers";
 
-    public static final String Inbox = "Inbox";
-    public static final String Sent = "Sent";
-    public static final String Trash = "Trash";
-    public static final String Draft = "Draft";
+    public static final String INBOX = "Inbox";
+    public static final String SENT = "Sent";
+    public static final String TRASH = "Trash";
+    public static final String DRAFT = "Draft";
 
     public static final String CONTACTS = "Contacts";
-    public static final String ATTACHMENTS = "Attashements";
+    public static final String ATTACHMENTS = "Attachments";
     public static final String ATTACHMENTS_SENT = "sent";
     public static final String ATTACHMENTS_INBOX = "Inbox";
     public static final String ATTACHMENTS_DRAFTS = "AttachmentsDrafts";
 
-    public static final String DATABASE_PATH = "data_base//";
-    public static final String ACCOUNTS_JSON_PATH = DATABASE_PATH +"accounts//Users.json";
+    public static final String DATABASE_PATH = "Database//";
     public static final String INDEX_JSON_PATH = "//index.json";
+    public static final String ACCOUNTS_PATH = DATABASE_PATH + "Accounts";
+    public static final String ACCOUNTS_JSON_PATH = ACCOUNTS_PATH+"//Users.json";
 
 
     public static final String CONTACTS_NAME = "ContactName";
-
 
 
 }
