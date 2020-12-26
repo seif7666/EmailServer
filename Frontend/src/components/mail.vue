@@ -6,10 +6,10 @@
       <span class = "email">  {{ senderOrReceivers }}</span>
       <span class = "priority"> priority:{{ priority ? "Primary" : "Default" }}</span>
       <span class ="mail-date">{{date}}</span>
-      <p class="mail-body">{{ body +" "+id}}</p>
+      <p class="mail-body">{{ body }}</p>
     </div>
     <div>
-      <label>attachments:</label>
+      <label ref="att">attachments:</label>
       <select id="sel" @change="switchView($event, $event.target.selectedIndex)"  ref = "select">
       </select>
       <button id = "dbtn" @click = "download">download</button>
@@ -121,11 +121,16 @@
       else{//We show Receiver
         this.senderOrReceivers = "From "+ this.email;
       }
-      if(this.attachments === null || this.attachments.attaches === null)
-        return;
 
       const docSel = this.$refs.select;
-      console.log(docSel);
+      if(this.attachments === null || this.attachments.attaches === null) {
+        docSel.remove();
+        document.querySelector("#dbtn").remove();
+        this.$refs.att.remove();
+        return;
+      }
+
+      // console.log(docSel);
       console.log(this.attachments.attaches);
       for(let i = 0  ;i< this.attachments.attaches.length ; i++){
         const arr = this.attachments.attaches[i].split("\\")

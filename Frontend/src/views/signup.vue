@@ -6,14 +6,11 @@
     <h1>Email</h1>
     <input class = "txt" v-model="email" placeholder="Enter email" />
     <h1>Password</h1>
-    <input class = "txt" v-model="password" placeholder="Enter password" />
+    <input class = "txt" v-model="password" type="password" placeholder="Enter password" />
     <br />
     <h1>Renter Password</h1>
-    <input class = "txt" v-model="rePassword" placeholder="Reenter password" />
+    <input class = "txt" v-model="rePassword" type="password" placeholder="Reenter password" />
     <br />
-<!--    <h1>Phone number</h1>-->
-<!--    <input class = "txt" v-model="phoneNumber" placeholder="enter phone number" />-->
-<!--    <br />-->
     <h1> birthday</h1>
     <input class = "txt" type ="date"  v-model="birthday" placeholder="enter birthday" />
     <br />
@@ -49,19 +46,17 @@ export default {
      * First we check that password and email is valid
      */
      signUp: async function() {
-       alert("HERE");
       let errorMessage = "";
       if(this.password !== this.rePassword){
         errorMessage += "Passwords don't match!\n";
       }
-      if(!this.username.length || !this.email.length || !this.password.length){
-        errorMessage += "username , email and password fields cannot be empty!";
+      if(!this.username.length || !this.email.length || !this.password.length ||!this.birthday.length){
+        errorMessage += "Username , Email , Password and birthday fields cannot be empty!";
       }
       if(errorMessage.length) {
         alert(errorMessage);
         return;
       }
-      alert("After return");
       const toBeSent = {
         email:this.email,
         userName:this.username,

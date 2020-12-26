@@ -13,7 +13,7 @@
       <input class ="textbox" v-model= "contactName" placeholder="Enter contact name"   />
       <br />
       <p>Enter contact emails:</p>
-      <textarea class ="mail" v-model="email" placeholder="Enter the mail" cols="40" rows="5"></textarea>      <br />
+      <textarea class ="mail" v-model="email" placeholder="Enter the mail, In case of multiple mails,please insert ',' between them." cols="40" rows="5"></textarea>      <br />
     </div>
   </div>
 </template>

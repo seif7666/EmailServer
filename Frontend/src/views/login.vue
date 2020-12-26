@@ -1,10 +1,10 @@
 /* eslint-disable */
 <template>
   <div class="login">
-    <h1>Username</h1>
-    <input class ="txt"  v-model="username" placeholder="Enter username" />
+    <h1>Email</h1>
+    <input class ="txt"  v-model="username" placeholder="Enter email" />
     <h2>Password</h2>
-    <input class ="txt" v-model="password" placeholder="Enter password" />
+    <input class ="txt" v-model="password" type="password" placeholder="Enter password" />
     <br />
     <br />
     <button v-on:click="tomail" class="btn">

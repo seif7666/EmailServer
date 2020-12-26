@@ -35,10 +35,6 @@
           @getTheContact = "contactSelect"
           @getCheckedContact = "checkContact"
       />
-
-      <p v-for="contact in contacts" v-bind:key="contact.id">
-        {{contact.id}}
-      </p>
     </div>
   </div>
 </template>

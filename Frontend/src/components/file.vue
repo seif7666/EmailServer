@@ -23,6 +23,9 @@
 
 <script>
     import {BACKEND_URL,axios} from "../main";
+    const MEGA_BYTE = 5;
+    const MAX_FILE_SIZE = MEGA_BYTE*1024*1024;//50MB
+
 
     export default {
 
@@ -59,6 +62,10 @@
                 // const formData = new FormData();
                 // formData.append('myFile', files[i]);
                 for(let i = 0 ;i<files.length ; i++){
+                    if(files[i].size > MAX_FILE_SIZE){
+                        alert("File : "+files[i].name+" won't be added as it's larger than "+MEGA_BYTE+"MB");
+                        continue;
+                    }
                     console.log(files[i].name);
                     const option = new Option(files[i].name, files[i].name);
                     sb.add(option, undefined);

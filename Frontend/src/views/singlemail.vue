@@ -15,15 +15,8 @@
       <h2>--------------------------------------------------------------------------------------</h2>
       <h2 class="mail-body">{{ $route.params.body }}</h2>
       <h2>--------------------------------------------------------------------------------------</h2>
-      <h4>attachments:</h4>
+      <h4 ref="att">attachments:</h4>
       <select id="sel" ref = "select" @change="switchView($event, $event.target.selectedIndex)" >
-<!--        <option-->
-<!--                v-for="attachment in $route.params.attachments"-->
-<!--                :key="attachment.label"-->
-<!--                :value="attachment.value"-->
-<!--        >-->
-<!--          {{ attachment }}-->
-<!--        </option>-->
       </select>
       <button id = "dbtn" @click = "downloadAttachment">download</button>
       <br>
@@ -96,6 +89,12 @@
       const docSel = this.$refs.select;
       console.log(docSel);
       console.log(this.attachments);
+      if(this.attachments === "null") {
+        docSel.remove();
+        document.querySelector("#dbtn").remove();
+        this.$refs.att.remove();
+        return;
+      }
       for(let i = 0  ;i< this.attachments.length ; i++){
         const arr = this.attachments[i].split("\\")
         const option = new Option(arr[arr.length-1] ,arr[arr.length-1]);

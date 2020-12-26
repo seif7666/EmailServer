@@ -13,8 +13,10 @@
       <label >Choose  priority of the mail:</label>
       <input type="checkbox" @change="changePriority"/>
 
-      <p>To:</p>
-      <textarea class ="email" v-model="email" placeholder="Enter the emails" cols="40" rows="2" ></textarea>
+      <div style = "margin:10px">
+        <label><strong>To: </strong></label>
+      </div>
+      <textarea class ="email" v-model="email" placeholder="Enter the emails,In case of multiple mails,please insert ',' between them." cols="40" rows="2" ></textarea>
 
       <p>Title:</p>
       <input class ="title" v-model="title" placeholder="Enter title" />
