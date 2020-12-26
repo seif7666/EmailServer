@@ -66,23 +66,26 @@ public class Server {
 
     }
     ///////////////////////message dealer//////////////////////////////////////////////////////////
-    public boolean  createMessage(String subject , String body , ArrayList<MultipartFile> attaches, ArrayList<String> reciver , String sentOrDart,boolean priority) throws IOException, ParseException{
-        for (String s : reciver) { //check if the one of the receiver not exist
-            if (!exist_user(s) || user.getEmail().equals(s)) {
-                return false; //return false to front end
+    public boolean  createMessage(String subject , String body , ArrayList<MultipartFile> attaches, ArrayList<String> reciver , String sentOrDarft,boolean priority) throws IOException, ParseException{
+        if(sentOrDarft.equals(Constants.SENT) ) {
+            for (String s : reciver) { //check if the one of the receiver not exist
+                if (!exist_user(s) || user.getEmail().equals(s)) {
+                    return false; //return false to front end
+                }
             }
         }
+
         SaveAndLoad saveAndLoad =new SaveAndLoad(); //make object of save and load
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy"); //pattern of date
         LocalDateTime now = LocalDateTime.now(); //get time noe of date
-        MessageHeader header = new MessageHeader(user.getEmail(),reciver,subject,sentOrDart,priority); //set message header
+        MessageHeader header = new MessageHeader(user.getEmail(),reciver,subject,sentOrDarft,priority); //set message header
         MessageBody Body = new MessageBody(body); //make body
         Attachments Attaches;//attachment of user
         MessageCreator myMessage ; //message creator
-        if (sentOrDart.equals(Constants.SENT)) { //message sent
+        if (sentOrDarft.equals(Constants.SENT)) { //message sent
             ArrayList<String> attachementsDealing=saveMultipartFile(attaches,user.getEmail(),Constants.ATTACHMENTS_SENT,saveAndLoad.getMessageID(user.getEmail(),Constants.SENT )); //dealing with attechments
-            Attaches = new Attachments(attachementsDealing); //set attachment object
-            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now),saveAndLoad.getMessageID(user.getEmail(),Constants.SENT ),priority); //set message creator
+            Attaches = new Attachments(attachementsDealing); //set attachement object
+            myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(user.getEmail(),Constants.SENT ),priority); //set message creator
 
             saveAndLoad.sendMessage(myMessage, Constants.SENT, myMessage.getHeader().getSender());//save message in the sent file of user
             for (int i = 0; i < reciver.size(); i++) { //loop with receiver
@@ -90,7 +93,7 @@ public class Server {
                 attachementsDealing=saveMultipartFile(attaches,myMessage.getHeader().getReciever().get(i),Constants.ATTACHMENTS_INBOX,saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.INBOX));
                 Attaches = new Attachments(attachementsDealing);
                 header = new MessageHeader(user.getEmail(),reciver,subject,Constants.INBOX,priority);//set header of the message
-                myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.INBOX),priority);//set message creator
+                myMessage = new MessageCreator(header,Body,Attaches,dtf.format(now).toString().toString(),saveAndLoad.getMessageID(myMessage.getHeader().getReciever().get(i), Constants.INBOX),priority);//set message creator
                 saveAndLoad.sendMessage(myMessage, Constants.INBOX, myMessage.getHeader().getReciever().get(i)); //save to the receiver
             }
         }
@@ -100,7 +103,7 @@ public class Server {
             myMessage = new MessageCreator(header,Body,Attaches, dtf.format(now),saveAndLoad.getMessageID(user.getEmail(), Constants.DRAFT),priority); //set message creator
             saveAndLoad.sendMessage(myMessage, Constants.DRAFT, myMessage.getHeader().getSender()); //save message of draft to user draft
         }
-        if (sentOrDart.equals(Constants.SENT)) //add message to current user
+        if (sentOrDarft.equals(Constants.SENT)) //add message to current user
             user.addsentMessage((Sent)myMessage.buildSentMessage());
         else  //add draft message to current user
             user.addDraftMessage((Draft) myMessage.buildDraftMessage());
@@ -443,6 +446,28 @@ public class Server {
                 contact.setEmails(contactsEmailSorted); //add sorted emails to contact
             }
             return contacts;
+        }
+    }
+
+    public ArrayList<MessageCreator> listEmails(int page,ArrayList<MessageCreator> messages) throws Exception {
+        ArrayList<MessageCreator> mails;  ///////previous message
+        int size=0; ///new size of the pagination
+        if(messages.size()==0)       return null;
+        else {
+            if(((page*10)-10)>messages.size()) {
+                return null; //return null if the number of page greater than size of messages
+            }else {
+                int initialElement=(page*10)-10; //the first element
+                size=((messages.size())-((page*10)-10));//size of the new list
+                if(size>10)size=10;  //size greater than 10 put size to 10
+                mails=new ArrayList<MessageCreator>();  //make the new list
+
+                for(int i=0;(i<size);i++) {
+                    mails.add(messages.get(initialElement++)); //add the message
+
+                }
+                return mails; //return the new list of message
+            }
         }
     }
 
