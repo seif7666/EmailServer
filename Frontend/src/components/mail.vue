@@ -39,7 +39,6 @@
     },
     methods:{
       selectMail(){
-        alert(this.draft1)
         if(this.draft1===true){
           console.log("Selected!");
           const wholeMail={
