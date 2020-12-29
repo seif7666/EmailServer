@@ -235,8 +235,8 @@ public class Controller {
                                                  @RequestParam(name="name")String file)  {
         System.out.println("Pressed!");
         String fileName = Constants.DATABASE_PATH;
-        fileName+=server.getUserEmail()+"\\"+Constants.ATTACHMENTS +"\\";
-        fileName+=type+id+"\\"+file;
+        fileName+=server.getUserEmail()+"//"+Constants.ATTACHMENTS +"//";
+        fileName+=type+id+"//"+file;
         System.out.println(fileName);
         Path filePath = Paths.get(fileName);
         Resource resource;

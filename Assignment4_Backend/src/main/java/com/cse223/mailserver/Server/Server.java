@@ -296,7 +296,7 @@ public class Server {
         File file = new File(makemessageAttachementsFolder);//create file
         file.mkdir();//make directory
         for(MultipartFile multipartFile : multipartFiles) {//iterate with multiple file
-            String directory= makemessageAttachementsFolder+"\\" + multipartFile.getOriginalFilename();
+            String directory= makemessageAttachementsFolder+"//" + multipartFile.getOriginalFilename();
             Path path = Path.of(directory);
             Files.copy(multipartFile.getInputStream() ,path, StandardCopyOption.REPLACE_EXISTING);
             files.add(directory); //add directory to save it
