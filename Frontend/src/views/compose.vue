@@ -43,7 +43,6 @@
 <script>
 import { BACKEND_URL, axios } from "../main";
 import file from "../components/file";
-import FileReader from "@/components/FileReader";
 export default {
   components: { file },
   data() {

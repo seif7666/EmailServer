@@ -74,7 +74,7 @@ export default {
       if (this.$route.params.isSent === "true") typeOfMail = "sent";
       else typeOfMail = "Inbox";
 
-      const array = this.attachments[this.index].split("\\");
+      const array = this.attachments[this.index].split("//");
       //Here we download
       const url = `${BACKEND_URL}download?id=${
         this.$route.params.id
@@ -103,7 +103,7 @@ export default {
       return;
     }
     for (let i = 0; i < this.attachments.length; i++) {
-      const arr = this.attachments[i].split("\\");
+      const arr = this.attachments[i].split("//");
       const option = new Option(arr[arr.length - 1], arr[arr.length - 1]);
       docSel.add(option, undefined);
     }

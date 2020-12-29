@@ -6,13 +6,10 @@
 
 <script>
 import HelloWorld from "../components/HelloWorld.vue"; // @ is an alias to /src
-import file from "../components/file.vue";
 
 export default {
   components: {
-    HelloWorld,
-    file
-  },
-
-}
+    HelloWorld
+  }
+};
 </script>
